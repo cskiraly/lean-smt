@@ -307,7 +307,8 @@ def solve (query : String) (timeout : Option Nat) (prove : Bool := true) (option
       trace[smt.solve] "model:\n{iss}\n{ifs}"
       return .sat { iss, ifs }
     else if res.isUnsat then
-      let uc ← slv.getUnsatCore
+      -- Only a solver asked for unsat cores has one; `smt` with `trust` does not ask.
+      let uc ← if (← slv.getOption "produce-unsat-cores") == "true" then slv.getUnsatCore else pure #[]
       let ps ← if prove then slv.getProof else pure #[]
       if h : 0 < ps.size then
         trace[smt.solve] "proof:\n{← slv.proofToString ps[0]}"

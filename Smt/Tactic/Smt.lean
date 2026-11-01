@@ -228,7 +228,8 @@ def smt (cfg : Config) (mv : MVarId) (hs : Array Expr) : MetaM Result := mv.with
     mv.withContext do trace[smt] "goal: {goalType}"
     trace[smt] "\nquery:\n{query}"
   -- 4. Run the solver.
-  let options := defaultSolverOptions ++ (if cfg.trust then [] else [("produce-proofs", "true")]) ++ cfg.extraSolverOptions
+  -- With `trust` the unsat core is never read, and without proofs cvc5 computes it slowly.
+  let options := defaultSolverOptions ++ (if cfg.trust then [("produce-unsat-cores", "false")] else [("produce-proofs", "true")]) ++ cfg.extraSolverOptions
   let res ← solve (Command.cmdsAsQuery cmds) cfg.timeout (!cfg.trust) options
   -- trace[smt] "\nresult: {res}"
   if asyncState.sendRawResult then
